@@ -25,13 +25,16 @@ class JudgeAgent:
 
     def _build_system_prompt(self) -> str:
         """Build the judge's system prompt with current context."""
+        import streamlit as st
         state = self.orchestrator.get_state()
         return get_judge_system_prompt(
             case_type=state.case_type,
-            judge_name=state.judge_name or "׳©׳•׳₪׳˜ ׳‘׳›׳™׳¨",
+            judge_name=state.judge_name or "שופט בכיר",
             judge_persona=state.judge_persona,
             case_facts=state.case_facts,
             current_phase=state.current_phase,
+            document_analysis=st.session_state.get("_document_analysis", ""),
+            law_context=st.session_state.get("_law_context", ""),
         )
 
     def _get_context_messages(self, max_context: int = 10) -> List[Dict]:
