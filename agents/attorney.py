@@ -144,8 +144,8 @@ class AttorneyAgent:
             )
         else:
             full_response = chat(messages=messages, system=system_with_objection)
-            self.conversation_history.append({"role": "attorney", "content": response})
-            self.orchestrator.add_conversation_message("attorney", response)
+        self.conversation_history.append({"role": "attorney", "content": full_response})
+        self.orchestrator.add_conversation_message("attorney", full_response)
         return full_response
 
     def cross_examine(
@@ -180,8 +180,8 @@ class AttorneyAgent:
             )
         else:
             full_response = chat(messages=messages, system=system_with_cross)
-            self.conversation_history.append({"role": "attorney", "content": response})
-            self.orchestrator.add_conversation_message("attorney", response)
+        self.conversation_history.append({"role": "attorney", "content": full_response})
+        self.orchestrator.add_conversation_message("attorney", full_response)
         return full_response
 
     def deliver_counter_argument(
@@ -215,8 +215,8 @@ class AttorneyAgent:
             )
         else:
             full_response = chat(messages=messages, system=system_with_argument)
-            self.conversation_history.append({"role": "attorney", "content": response})
-            self.orchestrator.add_conversation_message("attorney", response)
+        self.conversation_history.append({"role": "attorney", "content": full_response})
+        self.orchestrator.add_conversation_message("attorney", full_response)
         return full_response
 
     def get_conversation_history(self) -> List[Dict]:
