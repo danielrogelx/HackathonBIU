@@ -13,9 +13,9 @@ PHASE_LABELS = {
 }
 
 SPEAKER_STYLE = {
-    "judge":    ("🔵", "#c9a84c",  "msg-judge",    "כב׳ השופט"),
-    "attorney": ("🔴", "#cc4444",  "msg-attorney", "עו״ד הצד שכנגד"),
-    "user":     ("⚪", "#88aabb",  "msg-user",     "אתה"),
+    "judge":    ("🔵", "#A0714F",  "msg-judge",    "כב׳ השופט"),
+    "attorney": ("🔴", "#A05050",  "msg-attorney", "עו״ד הצד שכנגד"),
+    "user":     ("⚪", "#6B8E6B",  "msg-user",     "אתה"),
 }
 
 
@@ -77,6 +77,8 @@ def render():
         if st.button("סיים דיון 🔚"):
             debrief = end_session(messages)
             st.session_state["debrief"] = debrief
+            from data.session_store import save_session
+            save_session(debrief, lawyer_name=case.get("attorney_name") or "לא צוין")
             st.session_state["screen"] = "debrief"
             st.rerun()
 
