@@ -14,4 +14,5 @@ elif screen == "chat":
     from ui.chat_view import render
     render()
 elif screen == "debrief":
-    st.info("טוען דוח מאמן... (בקרוב)")
+    from ui.debrief_view import render
+    render()
