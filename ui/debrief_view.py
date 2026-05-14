@@ -3,14 +3,13 @@ import streamlit as st
 from agents.coach import DebriefReport
 from data.session_store import load_sessions
 
-# ── Palette ──────────────────────────────────────────────────────────────────
-COLOR_HIGH   = "#2ecc71"   # 8–10
-COLOR_MID    = "#f39c12"   # 5–7
-COLOR_LOW    = "#e74c3c"   # 1–4
-COLOR_GOLD   = "#c9a84c"
-COLOR_BG     = "#0d1117"
-COLOR_CARD   = "#161b22"
-COLOR_BORDER = "#30363d"
+# ── Palette (Navy & Gold) ─────────────────────────────────────────────────────
+COLOR_HIGH   = "#4A8C5C"   # 8–10
+COLOR_MID    = "#C4884A"   # 5–7
+COLOR_LOW    = "#B05040"   # 1–4
+COLOR_GOLD   = "#A0714F"
+COLOR_CARD   = "#F0E8D8"
+COLOR_BORDER = "#C4A882"
 
 
 def _score_color(score: int) -> str:
@@ -24,16 +23,6 @@ def _score_color(score: int) -> str:
 def _inject_styles() -> None:
     st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700;900&display=swap');
-
-    html, body, [class*="css"] {{
-        direction: rtl;
-        text-align: right;
-        font-family: 'Frank Ruhl Libre', serif;
-        background-color: {COLOR_BG};
-        color: #e6edf3;
-    }}
-
     /* Score card grid */
     .score-grid {{
         display: grid;
@@ -45,14 +34,15 @@ def _inject_styles() -> None:
     .score-card {{
         background: {COLOR_CARD};
         border: 1px solid {COLOR_BORDER};
-        border-radius: 10px;
+        border-top: 2px solid {COLOR_GOLD};
+        border-radius: 4px;
         padding: 16px 10px 14px 10px;
         text-align: center;
     }}
 
     .score-label {{
         font-size: 0.78rem;
-        color: #8b949e;
+        color: #8a8a9a;
         margin-bottom: 8px;
         font-weight: 400;
     }}
@@ -65,7 +55,7 @@ def _inject_styles() -> None:
     }}
 
     .score-bar-bg {{
-        background: #21262d;
+        background: #DDD0BC;
         border-radius: 4px;
         height: 6px;
         width: 100%;
@@ -78,9 +68,9 @@ def _inject_styles() -> None:
 
     /* Overall score banner */
     .overall-banner {{
-        background: linear-gradient(135deg, #1a2332 0%, #0d1117 100%);
+        background: linear-gradient(135deg, #EDE3D3 0%, #F0E8D8 100%);
         border: 1px solid {COLOR_GOLD};
-        border-radius: 12px;
+        border-radius: 4px;
         padding: 20px 28px;
         margin-bottom: 28px;
         display: flex;
@@ -104,7 +94,8 @@ def _inject_styles() -> None:
     .section-card {{
         background: {COLOR_CARD};
         border: 1px solid {COLOR_BORDER};
-        border-radius: 10px;
+        border-right: 3px solid {COLOR_GOLD};
+        border-radius: 2px;
         padding: 18px 22px;
         margin-bottom: 14px;
         line-height: 1.8;
@@ -114,11 +105,11 @@ def _inject_styles() -> None:
         font-size: 1rem;
         font-weight: 700;
         margin-bottom: 10px;
-        color: #e6edf3;
+        color: #3D2B1F;
     }}
 
     .section-body {{
-        color: #c9d1d9;
+        color: #5C3D2A;
         font-size: 0.95rem;
     }}
 
@@ -132,7 +123,6 @@ def _inject_styles() -> None:
         margin: 32px 0 16px 0;
     }}
 
-    /* Override Streamlit's default divider colour */
     hr {{
         border-color: {COLOR_BORDER} !important;
     }}
@@ -155,14 +145,14 @@ def _score_card_html(label: str, score: int) -> str:
 
 
 def render_debrief(report: DebriefReport) -> None:
-    """
-    Render the full post-session debrief report.
-    Called by app.py after analyze_session() returns a DebriefReport.
-    """
     _inject_styles()
 
-    st.markdown("## 📋 דוח מאמן — ניתוח ביצועים")
-    st.markdown(f"**סוג תיק:** {report.case_type} &nbsp;|&nbsp; **תאריך:** {report.timestamp[:10]}")
+    st.markdown(
+        '<div style="color:#c9a84c;font-size:16px;font-weight:bold;margin-bottom:2px;">דוח מאמן</div>'
+        '<div class="gold-rule"></div>',
+        unsafe_allow_html=True,
+    )
+    st.caption(f"סוג תיק: {report.case_type} · תאריך: {report.timestamp[:10]}")
     st.markdown("---")
 
     # ── Overall score banner ──────────────────────────────────────────────────
@@ -170,7 +160,7 @@ def render_debrief(report: DebriefReport) -> None:
     st.markdown(f"""
     <div class="overall-banner">
         <div class="overall-label">⭐ ציון כולל</div>
-        <div class="overall-number" style="color:{overall_color}">{report.overall}<span style="font-size:1.4rem; color:#8b949e">/10</span></div>
+        <div class="overall-number" style="color:{overall_color}">{report.overall}<span style="font-size:1.4rem; color:#8a8a9a">/10</span></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -193,7 +183,7 @@ def render_debrief(report: DebriefReport) -> None:
         ("✅ טענות חזקות",                     report.strong_points),
         ("⚠️ חולשות ונקודות לשיפור",            report.weaknesses),
         ("❌ טעויות סדריות לפי הדין הישראלי",   report.procedural_errors),
-        ('🎭 מה היו עושים בפועל',               report.reality_check),
+        ("🎭 מה היו עושים בפועל",               report.reality_check),
         ("💡 המלצות קונקרטיות",                  report.recommendations),
     ]
     for title, body in sections:
@@ -207,9 +197,16 @@ def render_debrief(report: DebriefReport) -> None:
     # ── Session history table ─────────────────────────────────────────────────
     render_history()
 
+    st.markdown("---")
+    if st.button("התחל סשן חדש 🔄", type="primary"):
+        for key in ["case", "personas", "phase", "messages", "debrief",
+                    "_orchestrator", "_judge", "_attorney", "_msg_count"]:
+            st.session_state.pop(key, None)
+        st.session_state["screen"] = "setup"
+        st.rerun()
+
 
 def render_history() -> None:
-    """Render the score history table (last 10 sessions)."""
     sessions = load_sessions()
     if not sessions:
         return
@@ -234,7 +231,6 @@ def render_history() -> None:
 
 
 def render() -> None:
-    """Entry point called by app.py with no arguments."""
     report = st.session_state.get("debrief")
     if report is None:
         st.error("לא נמצא דוח מאמן. אנא סיים דיון תחילה.")

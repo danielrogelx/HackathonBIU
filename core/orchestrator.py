@@ -207,6 +207,8 @@ def start_session(case: dict) -> dict:
         "parties": case.get("parties", ""),
         "charges": case.get("charges", ""),
         "evidence": case.get("evidence", ""),
+        "side": case.get("side", "defense"),
+        "documents": case.get("documents", ""),
     })
 
     judge_name = case.get("judge_name") or "שופט בכיר"
