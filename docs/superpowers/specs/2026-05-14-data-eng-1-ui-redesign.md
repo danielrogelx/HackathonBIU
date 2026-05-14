@@ -88,7 +88,7 @@ Rendered as `st.markdown(HEADER_HTML, unsafe_allow_html=True)`.
 
 ## Chat View — Transcript Messages
 
-Each message rendered by `_render_message(role, content, speaker_name)` as two HTML elements:
+Each message rendered by `_render_message(msg: dict)` (where `msg` has keys `role`, `content`, `speaker`) as two HTML elements:
 
 **Speaker label line:**
 ```

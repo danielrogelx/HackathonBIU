@@ -2,30 +2,30 @@ import streamlit as st
 from core.orchestrator import send_message, end_session
 
 PHASE_LABELS = {
-    "opening": "פתיחה",
-    "evidence": "הצגת הוכחות",
+    "opening":   "פתיחה",
+    "evidence":  "הצגת הוכחות",
     "examination": "חקירת עדים",
     "arguments": "הצגת טענות",
-    "cross": "חקירה נגדית",
-    "closing": "סיכומים",
-    "ruling": "גזר דין",
-    "judgment": "פסק דין",
+    "cross":     "חקירה נגדית",
+    "closing":   "סיכומים",
+    "ruling":    "גזר דין",
+    "judgment":  "פסק דין",
 }
 
 SPEAKER_STYLE = {
-    "judge":    ("🔵", "#1a3a6b", "שופט"),
-    "attorney": ("🔴", "#6b1a1a", "עו\"ד"),
-    "user":     ("⚪", "#3a3a3a", "אתה"),
+    "judge":    ("🔵", "#c9a84c",  "msg-judge",    "כב׳ השופט"),
+    "attorney": ("🔴", "#cc4444",  "msg-attorney", "עו״ד הצד שכנגד"),
+    "user":     ("⚪", "#88aabb",  "msg-user",     "אתה"),
 }
 
 
 def _render_message(msg: dict):
     role = msg.get("role", "user")
-    emoji, color, label = SPEAKER_STYLE.get(role, SPEAKER_STYLE["user"])
+    emoji, color, css_class, default_label = SPEAKER_STYLE.get(role, SPEAKER_STYLE["user"])
+    label = msg.get("speaker", default_label)
     st.markdown(
-        f"""<div style="background:{color}22; border-right:4px solid {color};
-        padding:10px 14px; margin:6px 0; border-radius:6px; direction:rtl;">
-        <strong>{emoji} {label}:</strong> {msg["content"]}</div>""",
+        f'<div class="speaker-label" style="color:{color};">{emoji} {label}:</div>'
+        f'<div class="{css_class}">{msg["content"]}</div>',
         unsafe_allow_html=True,
     )
 
@@ -37,9 +37,16 @@ def render():
     messages = st.session_state.get("messages", [])
 
     judge_display = case.get("judge_name") or "שופט"
+    case_type = "פלילי" if case.get("type") == "criminal" else "אזרחי"
     phase_label = PHASE_LABELS.get(phase, phase)
-    st.subheader(f"שלב: {phase_label} | שופט: {judge_display}")
-    st.markdown("---")
+
+    st.markdown(
+        f'<div style="margin-bottom:6px;">'
+        f'<span style="color:#c9a84c;font-size:13px;font-weight:bold;letter-spacing:1px;">⚖ שלב: {phase_label}</span>'
+        f'&nbsp;&nbsp;<span style="color:#8a8a9a;font-size:11px;">{judge_display} · {case_type}</span>'
+        f'</div><div class="gold-rule"></div>',
+        unsafe_allow_html=True,
+    )
 
     for msg in messages:
         _render_message(msg)

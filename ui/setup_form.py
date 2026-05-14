@@ -3,8 +3,11 @@ from core.orchestrator import start_session
 
 
 def render():
-    st.title("מתמחה בבית המשפט 🏛️")
-    st.subheader("סימולטור דיון משפטי לעורכי דין")
+    st.markdown(
+        '<div style="color:#c9a84c;font-size:16px;font-weight:bold;margin-bottom:2px;">הגדרת תיק</div>'
+        '<div class="gold-rule"></div>',
+        unsafe_allow_html=True,
+    )
 
     case_type = st.radio("סוג תיק", ["פלילי", "אזרחי"], horizontal=True)
 
@@ -13,7 +16,7 @@ def render():
     evidence = st.text_area("ראיות מרכזיות *", placeholder="פרט את הראיות המרכזיות שברשותך")
 
     st.markdown("---")
-    st.markdown("**אופציונלי — ניתן להשאיר ריק לקבל פרסונות ברירת מחדל**")
+    st.caption("אופציונלי — ניתן להשאיר ריק לקבל פרסונות ברירת מחדל")
     judge_name = st.text_input("שם השופט", placeholder="לדוגמה: אסתר חיות")
     attorney_name = st.text_input("שם עו\"ד הצד שכנגד", placeholder="לדוגמה: דן מרידור")
 
