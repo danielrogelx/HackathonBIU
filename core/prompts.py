@@ -13,6 +13,8 @@ def get_judge_system_prompt(
     judge_persona: Dict[str, Any],
     case_facts: Dict[str, Any],
     current_phase: str,
+    document_analysis: str = "",
+    law_context: str = "",
 ) -> str:
     """
     Generate judge agent system prompt with injected persona and context.
@@ -33,6 +35,28 @@ def get_judge_system_prompt(
     phase_block = _build_judge_phase_block(current_phase)
     case_facts_block = _format_case_facts(case_facts)
 
+    document_block = ""
+    if document_analysis:
+        document_block = f"""
+ניתוח המסמכים שהוגשו לתיק:
+{document_analysis}
+
+חובתך במהלך הדיון:
+- בכל פעם שעורך הדין או עו"ד הצד שכנגד טוענים טענה שסותרת את המסמכים — ציין זאת מיד
+- כשאתה מזהה חולשה משפטית במסמכים — הפנה את תשומת הלב של הצדדים לכך
+- אם יש סתירה בין שני המסמכים — הצג אותה ובקש הסבר
+- בקר את שניהם בצורה שווה ומאוזנת לפי הדין הישראלי
+"""
+
+    law_block = ""
+    if law_context:
+        law_block = f"""
+סעיפי חוק רלוונטיים לתיק זה (מאוחזרו על פי נסיבות התיק):
+{law_context}
+
+השתמש בסעיפי חוק אלו לאורך כל הדיון כשרלוונטי. ציטוט מהחוק חייב להיות מדויק.
+"""
+
     prompt = f"""אתה שופט ישראלי בכיר המנהל דיון בבית משפט.
 
 {persona_block}
@@ -43,7 +67,7 @@ def get_judge_system_prompt(
 
 פרטי התיק:
 {case_facts_block}
-
+{document_block}{law_block}
 כללים מחייבים:
 - אתה מדבר אך ורק בעברית
 - אתה מצטט אך ורק חוקים וחוקות ישראליים אמיתיים
