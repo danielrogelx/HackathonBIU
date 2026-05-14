@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timezone
 from pydantic import BaseModel, field_validator
-from core.openrouter_stub import call_openrouter
+from core.openrouter import chat as call_openrouter
 
 
 class DebriefReport(BaseModel):

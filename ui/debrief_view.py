@@ -231,3 +231,12 @@ def render_history() -> None:
         })
 
     st.dataframe(rows, use_container_width=True, hide_index=True)
+
+
+def render() -> None:
+    """Entry point called by app.py with no arguments."""
+    report = st.session_state.get("debrief")
+    if report is None:
+        st.error("לא נמצא דוח מאמן. אנא סיים דיון תחילה.")
+        return
+    render_debrief(report)

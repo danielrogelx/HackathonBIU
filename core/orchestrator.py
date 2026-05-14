@@ -178,3 +178,142 @@ class Orchestrator:
     def get_phase_name_he(self) -> str:
         """Get Hebrew name of current phase."""
         return self.state.get_current_phase_name_he()
+
+
+# ── Session-level convenience functions (used by Streamlit UI) ────────────────
+# These wrap the Orchestrator class using st.session_state for persistence
+# across Streamlit reruns. The Orchestrator class itself is not modified.
+
+def start_session(case: dict) -> dict:
+    """
+    Initialise a new court session from setup form data.
+
+    Returns dict with keys: personas, phase, opening_message
+    """
+    import uuid
+    import streamlit as st
+    from agents.judge import JudgeAgent
+    from agents.attorney import AttorneyAgent
+    from config import (
+        CaseType, DEFAULT_JUDGE_STYLE, DEFAULT_ATTORNEY_STYLE
+    )
+
+    case_type = CaseType.CRIMINAL if case.get("type") == "criminal" else CaseType.CIVIL
+
+    orch = Orchestrator(session_id=str(uuid.uuid4()), case_type=case_type)
+    orch.set_case_facts({
+        "parties": case.get("parties", ""),
+        "charges": case.get("charges", ""),
+        "evidence": case.get("evidence", ""),
+    })
+
+    judge_name = case.get("judge_name") or "שופט בכיר"
+    attorney_name = case.get("attorney_name") or "עורך דין בכיר"
+    orch.set_judge(judge_name, DEFAULT_JUDGE_STYLE)
+    orch.set_attorney(attorney_name, DEFAULT_ATTORNEY_STYLE)
+
+    # Advance from "setup" → "opening"
+    orch.advance_phase()
+
+    judge = JudgeAgent(orch)
+    attorney = AttorneyAgent(orch)
+
+    st.session_state["_orchestrator"] = orch
+    st.session_state["_judge"] = judge
+    st.session_state["_attorney"] = attorney
+    st.session_state["_msg_count"] = 0
+
+    opening_text = judge.opening_remarks()
+
+    return {
+        "personas": {
+            "judge": {"name": judge_name},
+            "attorney": {"name": attorney_name},
+        },
+        "phase": orch.get_state().current_phase,
+        "opening_message": {
+            "role": "judge",
+            "content": opening_text,
+            "speaker": judge_name,
+        },
+    }
+
+
+def send_message(
+    user_input: str,
+    messages: list,
+    phase: str,
+    case: dict,
+    personas: dict,
+) -> dict:
+    """
+    Process lawyer's message: judge responds, then attorney responds.
+
+    Returns dict with keys: judge_response, attorney_response, new_phase
+    """
+    import streamlit as st
+
+    orch: Orchestrator = st.session_state.get("_orchestrator")
+    judge = st.session_state.get("_judge")
+    attorney = st.session_state.get("_attorney")
+
+    if not orch or not judge or not attorney:
+        raise RuntimeError("Session not initialised — call start_session first.")
+
+    judge_text = judge.speak(lawyer_message=user_input)
+    attorney_text = attorney.speak()
+
+    # Auto-advance phase every 4 lawyer messages, but never into "debrief"
+    count = st.session_state.get("_msg_count", 0) + 1
+    st.session_state["_msg_count"] = count
+
+    if count % 4 == 0 and orch.can_advance_phase():
+        next_phase = orch.get_state().get_phases()[
+            orch.get_state().get_phases().index(orch.get_state().current_phase) + 1
+        ]
+        if next_phase != "debrief":
+            orch.advance_phase()
+
+    judge_name = personas.get("judge", {}).get("name", "כב׳ השופט")
+    attorney_name = personas.get("attorney", {}).get("name", 'עו"ד שכנגד')
+
+    return {
+        "judge_response": {
+            "role": "judge",
+            "content": judge_text,
+            "speaker": judge_name,
+        },
+        "attorney_response": {
+            "role": "attorney",
+            "content": attorney_text,
+            "speaker": attorney_name,
+        },
+        "new_phase": orch.get_state().current_phase,
+    }
+
+
+def end_session(messages: list):
+    """
+    End the session and return a DebriefReport from the coach agent.
+
+    Maps UI message roles to coach transcript format, then calls analyze_session.
+    """
+    import streamlit as st
+    from agents.coach import analyze_session
+
+    orch: Orchestrator = st.session_state.get("_orchestrator")
+    case_type = "פלילי"
+    if orch:
+        from config import CaseType
+        case_type = "פלילי" if orch.case_type == CaseType.CRIMINAL else "אזרחי"
+        orch.mark_complete()
+
+    # Map "user" → "lawyer" so the coach prompt recognises the role
+    role_map = {"user": "lawyer", "judge": "judge", "attorney": "attorney"}
+    transcript = [
+        {"role": role_map.get(m.get("role", "user"), "lawyer"),
+         "content": m.get("content", "")}
+        for m in messages
+    ]
+
+    return analyze_session(transcript, case_type)
