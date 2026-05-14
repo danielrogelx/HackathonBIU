@@ -1,83 +1,45 @@
-"""
-Setup Form Component
-Renders the case details input form
-"""
-
 import streamlit as st
-from config import CaseType
+from core.orchestrator import start_session
 
 
-def render_setup_form(case_type: CaseType) -> tuple:
-    """
-    Render the case setup form.
-
-    Args:
-        case_type: Criminal or Civil
-
-    Returns:
-        Tuple of (case_facts, judge_name, attorney_name)
-    """
-
-    st.markdown(f"### פרטי התיק")
-
-    # Basic case info
-    col1, col2 = st.columns(2)
-
-    with col1:
-        parties = st.text_input(
-            "👥 הצדדים בתיק (שם מתלונן / תובע כנגד)",
-            placeholder="למשל: מדינת ישראל כנגד ראובן כהן",
-        )
-
-    with col2:
-        judge_name = st.text_input(
-            "🔵 שם השופט (אופציונלי)",
-            placeholder="אם יש לך בחירה מסוימת",
-        )
-
-    attorney_name = st.text_input(
-        '🔴 שם עו"ד הצד שכנגד (אופציונלי)',
-        placeholder="שם המשיב / הנתבע",
+def render():
+    st.markdown(
+        '<div style="color:#c9a84c;font-size:16px;font-weight:bold;margin-bottom:2px;">הגדרת תיק</div>'
+        '<div class="gold-rule"></div>',
+        unsafe_allow_html=True,
     )
 
-    # Charge or claim
-    if case_type == CaseType.CRIMINAL:
-        charges = st.text_area(
-            "📋 האישום / הטענה",
-            placeholder="למשל: גניבה בתחזוקה, שודדות מלווה בדם...",
-            height=80,
-        )
-        claim = ""
-    else:
-        claim = st.text_area(
-            "📋 תביעה",
-            placeholder="למשל: פיצוי על נזקי גוף, חוזה שלא בוצע...",
-            height=80,
-        )
-        charges = ""
+    case_type = st.radio("סוג תיק", ["פלילי", "אזרחי"], horizontal=True)
 
-    # Evidence
-    evidence = st.text_area(
-        "🔍 ראיות עיקריות / טיעונים",
-        placeholder="פרט את הראיות או טיעוניך המרכזיים",
-        height=100,
-    )
+    parties = st.text_input("הצדדים *", placeholder="לדוגמה: מדינת ישראל נ' ראובן שמעון")
+    charges = st.text_area("האישום / התביעה *", placeholder="תאר את האישום הפלילי או עילת התביעה")
+    evidence = st.text_area("ראיות מרכזיות *", placeholder="פרט את הראיות המרכזיות שברשותך")
 
-    # Defense story (lawyer's main argument)
-    defendant_story = st.text_area(
-        "🗣️ הגרסה / הטיעון שלך (מה תגיד בדיון)",
-        placeholder="מה הסיפור שלך? מה תטען?",
-        height=100,
-    )
+    st.markdown("---")
+    st.caption("אופציונלי — ניתן להשאיר ריק לקבל פרסונות ברירת מחדל")
+    judge_name = st.text_input("שם השופט", placeholder="לדוגמה: אסתר חיות")
+    attorney_name = st.text_input("שם עו\"ד הצד שכנגד", placeholder="לדוגמה: דן מרידור")
 
-    # Compile case facts
-    case_facts = {
-        "parties": parties,
-        "charges": charges,
-        "claim": claim,
-        "evidence": evidence,
-        "defendant_story": defendant_story,
-        "case_type": case_type.value,
-    }
+    if st.button("בחן אותי! ⚖️", type="primary"):
+        if not parties or not charges or not evidence:
+            st.error("יש למלא את כל השדות המסומנים ב-*")
+            return
 
-    return case_facts, judge_name, attorney_name
+        case = {
+            "type": "criminal" if case_type == "פלילי" else "civil",
+            "parties": parties,
+            "charges": charges,
+            "evidence": evidence,
+            "judge_name": judge_name,
+            "attorney_name": attorney_name,
+        }
+
+        with st.spinner("מכין את הסימולציה..."):
+            result = start_session(case)
+
+        st.session_state["case"] = case
+        st.session_state["personas"] = result["personas"]
+        st.session_state["phase"] = result["phase"]
+        st.session_state["messages"] = [result["opening_message"]]
+        st.session_state["screen"] = "chat"
+        st.rerun()
