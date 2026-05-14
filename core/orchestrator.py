@@ -188,15 +188,17 @@ def start_session(case: dict) -> dict:
     """
     Initialise a new court session from setup form data.
 
+    case dict may include:
+        plaintiff_text: str  — extracted text from כתב תביעה / כתב אישום
+        defense_text:   str  — extracted text from כתב הגנה
+
     Returns dict with keys: personas, phase, opening_message
     """
     import uuid
     import streamlit as st
     from agents.judge import JudgeAgent
     from agents.attorney import AttorneyAgent
-    from config import (
-        CaseType, DEFAULT_JUDGE_STYLE, DEFAULT_ATTORNEY_STYLE
-    )
+    from config import CaseType, DEFAULT_JUDGE_STYLE, DEFAULT_ATTORNEY_STYLE
 
     case_type = CaseType.CRIMINAL if case.get("type") == "criminal" else CaseType.CIVIL
 
@@ -213,6 +215,35 @@ def start_session(case: dict) -> dict:
     attorney_name = case.get("attorney_name") or "עורך דין בכיר"
     orch.set_judge(judge_name, DEFAULT_JUDGE_STYLE)
     orch.set_attorney(attorney_name, DEFAULT_ATTORNEY_STYLE)
+
+    # ── RAG: retrieve relevant laws for this case ─────────────────────────
+    law_context = ""
+    try:
+        from core.rag.law_rag import query_relevant_laws, is_index_built
+        if is_index_built():
+            rag_query = (
+                f"{case.get('charges', '')} {case.get('evidence', '')} "
+                f"{case.get('parties', '')} "
+                f"{'פלילי' if case_type == CaseType.CRIMINAL else 'אזרחי'}"
+            )
+            law_context = query_relevant_laws(rag_query)
+    except Exception:
+        pass  # law context is a bonus — session proceeds without it
+
+    # ── Analyze uploaded case documents ───────────────────────────────────
+    document_analysis = ""
+    plaintiff_text = case.get("plaintiff_text", "")
+    defense_text = case.get("defense_text", "")
+    if plaintiff_text and defense_text:
+        try:
+            from core.document_analyzer import analyze_case_documents
+            document_analysis = analyze_case_documents(plaintiff_text, defense_text)
+        except Exception:
+            pass
+
+    # Store both for use in judge._build_system_prompt()
+    st.session_state["_law_context"] = law_context
+    st.session_state["_document_analysis"] = document_analysis
 
     # Advance from "setup" → "opening"
     orch.advance_phase()

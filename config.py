@@ -17,8 +17,8 @@ print(
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 MODEL = "anthropic/claude-sonnet-4-5"
 
-# Model parameters
-MAX_TOKENS = 1024
+# Model parameters — 2048 prevents mid-sentence cut-off in Hebrew
+MAX_TOKENS = 2048
 TEMPERATURE = 0.7
 
 # HTTP Configuration
