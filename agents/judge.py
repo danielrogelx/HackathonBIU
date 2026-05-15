@@ -35,6 +35,7 @@ class JudgeAgent:
             current_phase=state.current_phase,
             document_analysis=st.session_state.get("_document_analysis", ""),
             law_context=st.session_state.get("_law_context", ""),
+            user_side=st.session_state.get("_user_side", "defense"),
         )
 
     def _get_context_messages(self, max_context: int = 10) -> List[Dict]:

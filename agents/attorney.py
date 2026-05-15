@@ -25,6 +25,7 @@ class AttorneyAgent:
 
     def _build_system_prompt(self) -> str:
         """Build the attorney's system prompt with current context."""
+        import streamlit as st
         state = self.orchestrator.get_state()
         return get_attorney_system_prompt(
             case_type=state.case_type,
@@ -32,6 +33,7 @@ class AttorneyAgent:
             attorney_persona=state.attorney_persona,
             case_facts=state.case_facts,
             current_phase=state.current_phase,
+            user_side=st.session_state.get("_user_side", "defense"),
         )
 
     def _get_context_messages(self, max_context: int = 10) -> List[Dict]:

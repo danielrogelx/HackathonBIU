@@ -15,6 +15,7 @@ def get_judge_system_prompt(
     current_phase: str,
     document_analysis: str = "",
     law_context: str = "",
+    user_side: str = "defense",
 ) -> str:
     """
     Generate judge agent system prompt with injected persona and context.
@@ -34,6 +35,16 @@ def get_judge_system_prompt(
     case_type_block = _build_judge_case_type_block(case_type)
     phase_block = _build_judge_phase_block(current_phase)
     case_facts_block = _format_case_facts(case_facts)
+
+    # Role block — tell the judge which side the practicing lawyer represents
+    user_side_he = "ההגנה" if user_side == "defense" else "התביעה"
+    opposing_side_he = "התביעה" if user_side == "defense" else "ההגנה"
+    role_block = f"""
+עורך הדין המתאמן מייצג את צד {user_side_he}.
+כאשר אתה פונה לצד {opposing_side_he} — עורך הדין שכנגד יגיב באופן אוטומטי.
+אל תבקש מהמתאמן להגיב על טענות של {opposing_side_he} — זה לא תפקידו בסימולציה זו.
+כוון שאלות, ביקורות, ודרישות אך ורק לצד {user_side_he} כאשר אתה רוצה תגובה מהמתאמן.
+"""
 
     document_block = ""
     if document_analysis:
@@ -67,7 +78,7 @@ def get_judge_system_prompt(
 
 פרטי התיק:
 {case_facts_block}
-{document_block}{law_block}
+{role_block}{document_block}{law_block}
 כללים מחייבים:
 - אתה מדבר אך ורק בעברית
 - אתה מצטט אך ורק חוקים וחוקות ישראליים אמיתיים
@@ -87,6 +98,7 @@ def get_attorney_system_prompt(
     attorney_persona: Dict[str, Any],
     case_facts: Dict[str, Any],
     current_phase: str,
+    user_side: str = "defense",
 ) -> str:
     """
     Generate opposing attorney agent system prompt.
@@ -107,7 +119,10 @@ def get_attorney_system_prompt(
     phase_block = _build_attorney_phase_block(current_phase)
     case_facts_block = _format_case_facts(case_facts)
 
-    prompt = f"""אתה עורך דין מנוסה המייצג את הצד שכנגד בדיון.
+    # Attorney always represents the side OPPOSITE to the user
+    my_side_he = "התביעה" if user_side == "defense" else "ההגנה"
+
+    prompt = f"""אתה עורך דין מנוסה המייצג את צד {my_side_he} בדיון.
 
 {persona_block}
 

@@ -244,6 +244,7 @@ def start_session(case: dict) -> dict:
     # Store both for use in judge._build_system_prompt()
     st.session_state["_law_context"] = law_context
     st.session_state["_document_analysis"] = document_analysis
+    st.session_state["_user_side"] = case.get("side", "defense")
 
     # Advance from "setup" → "opening"
     orch.advance_phase()

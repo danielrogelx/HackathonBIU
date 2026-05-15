@@ -1,3 +1,7 @@
+import warnings
+warnings.filterwarnings("ignore", message=".*torchvision.*")
+warnings.filterwarnings("ignore", message=".*No module named 'torchvision'.*")
+
 import streamlit as st
 
 _CSS = """

@@ -219,7 +219,7 @@ def render_history() -> None:
             "תאריך":       s["timestamp"][:10],
             "עורך דין":    s.get("lawyer", "לא צוין"),
             "סוג תיק":     s["case_type"],
-            "ציון כולל":   f"{s['overall']}/10",
+            "ציון כולל":   s["overall"],
             "שכנוע":       s["score_persuasion"],
             "שליטה בחוק":  s["score_law"],
             "ניהול ראיות": s["score_evidence"],
@@ -227,7 +227,22 @@ def render_history() -> None:
             "נוהל":        s["score_procedure"],
         })
 
-    st.dataframe(rows, use_container_width=True, hide_index=True)
+    st.dataframe(
+        rows,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "תאריך":       st.column_config.TextColumn("תאריך", width="small"),
+            "עורך דין":    st.column_config.TextColumn("עורך דין"),
+            "סוג תיק":     st.column_config.TextColumn("סוג תיק", width="small"),
+            "ציון כולל":   st.column_config.NumberColumn("ציון כולל", format="%d/10", width="small"),
+            "שכנוע":       st.column_config.NumberColumn("שכנוע", format="%d", width="small"),
+            "שליטה בחוק":  st.column_config.NumberColumn("שליטה בחוק", format="%d", width="small"),
+            "ניהול ראיות": st.column_config.NumberColumn("ניהול ראיות", format="%d", width="small"),
+            "תגובה":       st.column_config.NumberColumn("תגובה", format="%d", width="small"),
+            "נוהל":        st.column_config.NumberColumn("נוהל", format="%d", width="small"),
+        },
+    )
 
 
 def render() -> None:
