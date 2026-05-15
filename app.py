@@ -1,6 +1,17 @@
+import sys
+import types
 import warnings
-warnings.filterwarnings("ignore", message=".*torchvision.*")
-warnings.filterwarnings("ignore", message=".*No module named 'torchvision'.*")
+
+# torchvision is not needed for text-only embeddings; stub it out before
+# sentence-transformers (pulled in by chromadb) tries to import it.
+if "torchvision" not in sys.modules:
+    sys.modules["torchvision"] = types.ModuleType("torchvision")
+    for _submod in (
+        "torchvision.transforms",
+        "torchvision.datasets",
+        "torchvision.models",
+    ):
+        sys.modules[_submod] = types.ModuleType(_submod)
 
 import streamlit as st
 
@@ -87,10 +98,13 @@ screen = st.session_state.get("screen", "setup")
 
 if screen == "setup":
     from ui.setup_form import render
+
     render()
 elif screen == "chat":
     from ui.chat_view import render
+
     render()
 elif screen == "debrief":
     from ui.debrief_view import render
+
     render()

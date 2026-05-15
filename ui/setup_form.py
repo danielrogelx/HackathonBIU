@@ -23,11 +23,21 @@ def render():
     )
     col1, col2 = st.columns(2)
     with col1:
-        claim_file = st.file_uploader("כתב תביעה / כתב אישום *", type=_DOC_TYPES, key="claim_file")
+        claim_file = st.file_uploader(
+            "כתב תביעה / כתב אישום *", type=_DOC_TYPES, key="claim_file"
+        )
         st.caption(".txt · .pdf · .docx")
     with col2:
-        defense_file = st.file_uploader("כתב הגנה *", type=_DOC_TYPES, key="defense_file")
+        defense_file = st.file_uploader(
+            "כתב הגנה *", type=_DOC_TYPES, key="defense_file"
+        )
         st.caption(".txt · .pdf · .docx")
+
+    short_mode = st.toggle(
+        "⚡ משפט קצר",
+        value=False,
+        help="תגובות מקוצרות של 50–100 מילים — מתאים לתרגול מהיר",
+    )
 
     if st.button("בחן אותי! ⚖️", type="primary"):
         errors = []
@@ -59,6 +69,7 @@ def render():
             "evidence": "",
             "plaintiff_text": plaintiff_text,
             "defense_text": defense_text,
+            "short_mode": short_mode,
         }
 
         with st.spinner("מנתח מסמכים ומכין את הסימולציה..."):

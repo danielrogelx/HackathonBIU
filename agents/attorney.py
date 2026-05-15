@@ -26,15 +26,25 @@ class AttorneyAgent:
     def _build_system_prompt(self) -> str:
         """Build the attorney's system prompt with current context."""
         import streamlit as st
+
         state = self.orchestrator.get_state()
-        return get_attorney_system_prompt(
+        prompt = get_attorney_system_prompt(
             case_type=state.case_type,
-            attorney_name=state.attorney_name or "עורך דין בכיר",
+            attorney_name=state.attorney_name or "עורך דין שכנגד",
             attorney_persona=state.attorney_persona,
             case_facts=state.case_facts,
             current_phase=state.current_phase,
             user_side=st.session_state.get("_user_side", "defense"),
+            plaintiff_text=st.session_state.get("_plaintiff_text", ""),
+            defense_text=st.session_state.get("_defense_text", ""),
         )
+        if st.session_state.get("_short_mode"):
+            prompt += (
+                "\n\n⚡ מצב משפט קצר: השב בתמציתיות מרבית — "
+                "לא יותר מ-60 מילים לכל תגובה. "
+                "היה חד, ישיר, ומדויק."
+            )
+        return prompt
 
     def _get_context_messages(self, max_context: int = 10) -> List[Dict]:
         """
@@ -85,11 +95,18 @@ class AttorneyAgent:
         # Build messages for API call
         messages = self._get_context_messages()
 
-        # Get attorney's response — force a direct reply regardless of phase
+        # The orchestrator history always ends with the judge's reply (role=assistant).
+        # If the last message is "assistant", the OpenAI-compatible API has no pending
+        # user turn to respond to and returns null content.  Add an explicit user-role
+        # trigger so the model knows it must generate a new attorney reply.
+        if not messages or messages[-1]["role"] != "user":
+            messages = messages + [
+                {"role": "user", "content": "עורך הדין שכנגד, הגיב לטיעון האחרון."}
+            ]
+
+        # Instruction lives in system prompt — keep it clean, not duplicated in messages
         system_prompt = (
-            self._build_system_prompt()
-            + "\n\nעכשיו תורך להגיב לטיעון האחרון של עורך הדין שמתאמן. "
-            "הגב ישירות ובאופן תוקפני ומקצועי — אל תאמר שאתה צופה. "
+            self._build_system_prompt() + "\n\nהגב ישירות ובאופן תוקפני ומקצועי. "
             "תן תגובה קצרה וחדה של 2-4 משפטים בעברית."
         )
 
@@ -99,6 +116,11 @@ class AttorneyAgent:
             )
         else:
             full_response = chat(messages=messages, system=system_prompt)
+
+        # Guard: API occasionally returns None content — skip silently
+        if not full_response or not full_response.strip():
+            return ""
+
         self.conversation_history.append({"role": "attorney", "content": full_response})
         self.orchestrator.add_conversation_message("attorney", full_response)
         return full_response

@@ -4,11 +4,11 @@ from agents.coach import DebriefReport
 from data.session_store import load_sessions
 
 # ── Palette (Navy & Gold) ─────────────────────────────────────────────────────
-COLOR_HIGH   = "#4A8C5C"   # 8–10
-COLOR_MID    = "#C4884A"   # 5–7
-COLOR_LOW    = "#B05040"   # 1–4
-COLOR_GOLD   = "#A0714F"
-COLOR_CARD   = "#F0E8D8"
+COLOR_HIGH = "#4A8C5C"  # 8–10
+COLOR_MID = "#C4884A"  # 5–7
+COLOR_LOW = "#B05040"  # 1–4
+COLOR_GOLD = "#A0714F"
+COLOR_CARD = "#F0E8D8"
 COLOR_BORDER = "#C4A882"
 
 
@@ -21,7 +21,8 @@ def _score_color(score: int) -> str:
 
 
 def _inject_styles() -> None:
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <style>
     /* Score card grid */
     .score-grid {{
@@ -127,21 +128,24 @@ def _inject_styles() -> None:
         border-color: {COLOR_BORDER} !important;
     }}
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def _score_card_html(label: str, score: int) -> str:
     color = _score_color(score)
     pct = score * 10
-    return f"""
-    <div class="score-card">
-        <div class="score-label">{label}</div>
-        <div class="score-number" style="color:{color}">{score}</div>
-        <div class="score-bar-bg">
-            <div class="score-bar-fill" style="width:{pct}%; background:{color};"></div>
-        </div>
-    </div>
-    """
+    # No blank lines — Streamlit's markdown parser breaks HTML blocks on blank lines
+    return (
+        f'<div class="score-card">'
+        f'<div class="score-label">{label}</div>'
+        f'<div class="score-number" style="color:{color}">{score}</div>'
+        f'<div class="score-bar-bg">'
+        f'<div class="score-bar-fill" style="width:{pct}%; background:{color};"></div>'
+        f"</div>"
+        f"</div>"
+    )
 
 
 def render_debrief(report: DebriefReport) -> None:
@@ -157,50 +161,63 @@ def render_debrief(report: DebriefReport) -> None:
 
     # ── Overall score banner ──────────────────────────────────────────────────
     overall_color = _score_color(report.overall)
-    st.markdown(f"""
-    <div class="overall-banner">
-        <div class="overall-label">⭐ ציון כולל</div>
-        <div class="overall-number" style="color:{overall_color}">{report.overall}<span style="font-size:1.4rem; color:#8a8a9a">/10</span></div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="overall-banner">'
+        f'<div class="overall-label">⭐ ציון כולל</div>'
+        f'<div class="overall-number" style="color:{overall_color}">{report.overall}'
+        f'<span style="font-size:1.4rem; color:#8a8a9a">/10</span></div>'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
 
     # ── Five score cards ──────────────────────────────────────────────────────
     dims = [
-        ("שכנוע",          report.score_persuasion),
-        ("שליטה בחוק",     report.score_law),
-        ("ניהול ראיות",    report.score_evidence),
-        ("תגובה לאתגרים",  report.score_pressure),
-        ("סדרה ונוהל",     report.score_procedure),
+        ("שכנוע", report.score_persuasion),
+        ("שליטה בחוק", report.score_law),
+        ("ניהול ראיות", report.score_evidence),
+        ("תגובה לאתגרים", report.score_pressure),
+        ("סדרה ונוהל", report.score_procedure),
     ]
-    cards_html = '<div class="score-grid">'
-    for label, score in dims:
-        cards_html += _score_card_html(label, score)
-    cards_html += "</div>"
+    cards_html = (
+        '<div class="score-grid">'
+        + "".join(_score_card_html(label, score) for label, score in dims)
+        + "</div>"
+    )
     st.markdown(cards_html, unsafe_allow_html=True)
 
     # ── Debrief sections ──────────────────────────────────────────────────────
     sections = [
-        ("✅ טענות חזקות",                     report.strong_points),
-        ("⚠️ חולשות ונקודות לשיפור",            report.weaknesses),
-        ("❌ טעויות סדריות לפי הדין הישראלי",   report.procedural_errors),
-        ("🎭 מה היו עושים בפועל",               report.reality_check),
-        ("💡 המלצות קונקרטיות",                  report.recommendations),
+        ("✅ טענות חזקות", report.strong_points),
+        ("⚠️ חולשות ונקודות לשיפור", report.weaknesses),
+        ("❌ טעויות סדריות לפי הדין הישראלי", report.procedural_errors),
+        ("🎭 מה היו עושים בפועל", report.reality_check),
+        ("💡 המלצות קונקרטיות", report.recommendations),
     ]
     for title, body in sections:
-        st.markdown(f"""
-        <div class="section-card">
-            <div class="section-title">{title}</div>
-            <div class="section-body">{html.escape(body)}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="section-card">'
+            f'<div class="section-title">{title}</div>'
+            f'<div class="section-body">{html.escape(body)}</div>'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
 
     # ── Session history table ─────────────────────────────────────────────────
     render_history()
 
     st.markdown("---")
     if st.button("התחל סשן חדש 🔄", type="primary"):
-        for key in ["case", "personas", "phase", "messages", "debrief",
-                    "_orchestrator", "_judge", "_attorney", "_msg_count"]:
+        for key in [
+            "case",
+            "personas",
+            "phase",
+            "messages",
+            "debrief",
+            "_orchestrator",
+            "_judge",
+            "_attorney",
+            "_msg_count",
+        ]:
             st.session_state.pop(key, None)
         st.session_state["screen"] = "setup"
         st.rerun()
@@ -211,36 +228,46 @@ def render_history() -> None:
     if not sessions:
         return
 
-    st.markdown('<div class="history-header">📊 היסטוריית ציונים</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="history-header">📊 היסטוריית ציונים</div>', unsafe_allow_html=True
+    )
 
     rows = []
     for s in reversed(sessions[-10:]):
-        rows.append({
-            "תאריך":       s["timestamp"][:10],
-            "עורך דין":    s.get("lawyer", "לא צוין"),
-            "סוג תיק":     s["case_type"],
-            "ציון כולל":   s["overall"],
-            "שכנוע":       s["score_persuasion"],
-            "שליטה בחוק":  s["score_law"],
-            "ניהול ראיות": s["score_evidence"],
-            "תגובה":       s["score_pressure"],
-            "נוהל":        s["score_procedure"],
-        })
+        rows.append(
+            {
+                "תאריך": s["timestamp"][:10],
+                "עורך דין": s.get("lawyer", "לא צוין"),
+                "סוג תיק": s["case_type"],
+                "ציון כולל": s["overall"],
+                "שכנוע": s["score_persuasion"],
+                "שליטה בחוק": s["score_law"],
+                "ניהול ראיות": s["score_evidence"],
+                "תגובה": s["score_pressure"],
+                "נוהל": s["score_procedure"],
+            }
+        )
 
     st.dataframe(
         rows,
         use_container_width=True,
         hide_index=True,
         column_config={
-            "תאריך":       st.column_config.TextColumn("תאריך", width="small"),
-            "עורך דין":    st.column_config.TextColumn("עורך דין"),
-            "סוג תיק":     st.column_config.TextColumn("סוג תיק", width="small"),
-            "ציון כולל":   st.column_config.NumberColumn("ציון כולל", format="%d/10", width="small"),
-            "שכנוע":       st.column_config.NumberColumn("שכנוע", format="%d", width="small"),
-            "שליטה בחוק":  st.column_config.NumberColumn("שליטה בחוק", format="%d", width="small"),
-            "ניהול ראיות": st.column_config.NumberColumn("ניהול ראיות", format="%d", width="small"),
-            "תגובה":       st.column_config.NumberColumn("תגובה", format="%d", width="small"),
-            "נוהל":        st.column_config.NumberColumn("נוהל", format="%d", width="small"),
+            "תאריך": st.column_config.TextColumn("תאריך", width="small"),
+            "עורך דין": st.column_config.TextColumn("עורך דין"),
+            "סוג תיק": st.column_config.TextColumn("סוג תיק", width="small"),
+            "ציון כולל": st.column_config.NumberColumn(
+                "ציון כולל", format="%d/10", width="small"
+            ),
+            "שכנוע": st.column_config.NumberColumn("שכנוע", format="%d", width="small"),
+            "שליטה בחוק": st.column_config.NumberColumn(
+                "שליטה בחוק", format="%d", width="small"
+            ),
+            "ניהול ראיות": st.column_config.NumberColumn(
+                "ניהול ראיות", format="%d", width="small"
+            ),
+            "תגובה": st.column_config.NumberColumn("תגובה", format="%d", width="small"),
+            "נוהל": st.column_config.NumberColumn("נוהל", format="%d", width="small"),
         },
     )
 

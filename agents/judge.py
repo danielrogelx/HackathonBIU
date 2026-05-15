@@ -26,8 +26,9 @@ class JudgeAgent:
     def _build_system_prompt(self) -> str:
         """Build the judge's system prompt with current context."""
         import streamlit as st
+
         state = self.orchestrator.get_state()
-        return get_judge_system_prompt(
+        prompt = get_judge_system_prompt(
             case_type=state.case_type,
             judge_name=state.judge_name or "שופט בכיר",
             judge_persona=state.judge_persona,
@@ -36,7 +37,16 @@ class JudgeAgent:
             document_analysis=st.session_state.get("_document_analysis", ""),
             law_context=st.session_state.get("_law_context", ""),
             user_side=st.session_state.get("_user_side", "defense"),
+            plaintiff_text=st.session_state.get("_plaintiff_text", ""),
+            defense_text=st.session_state.get("_defense_text", ""),
         )
+        if st.session_state.get("_short_mode"):
+            prompt += (
+                "\n\n⚡ מצב משפט קצר: השב בתמציתיות מרבית — "
+                "לא יותר מ-80 מילים לכל תגובה. "
+                "היה ישיר, קצר, ומדויק. אל תחזור על מה שנאמר."
+            )
+        return prompt
 
     def _get_context_messages(self, max_context: int = 10) -> List[Dict]:
         """
@@ -52,8 +62,10 @@ class JudgeAgent:
             List of message dicts for API
         """
         context = self.orchestrator.get_context_window(max_context)
-        # Map internal roles to OpenRouter API roles (user / assistant only)
-        role_map = {"lawyer": "user", "judge": "assistant", "attorney": "assistant"}
+        # Map internal roles to OpenRouter API roles (user / assistant only).
+        # Both "lawyer" and "attorney" are parties speaking TO the judge, so they
+        # map to "user". The judge's own prior turns map to "assistant".
+        role_map = {"lawyer": "user", "judge": "assistant", "attorney": "user"}
         return [
             {
                 "role": role_map.get(msg.get("role", "user"), "user"),

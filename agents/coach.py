@@ -1,33 +1,55 @@
 import json
+import re
 from datetime import datetime, timezone
 from pydantic import BaseModel, field_validator
 from core.openrouter import chat as call_openrouter
 
 
+def _strip_html(text: str) -> str:
+    """Remove any HTML tags the LLM may have included in text fields."""
+    return re.sub(r"<[^>]+>", "", text or "").strip()
+
+
 class DebriefReport(BaseModel):
-    score_persuasion: int   # שכנוע          1–10
-    score_law: int          # שליטה בחוק     1–10
-    score_evidence: int     # ניהול ראיות     1–10
-    score_pressure: int     # תגובה לאתגרים   1–10
-    score_procedure: int    # סדרה ונוהל      1–10
-    overall: int            # ממוצע מעוגל     1–10
-    strong_points: str      # ✅ טענות חזקות
-    weaknesses: str         # ⚠️ חולשות
+    score_persuasion: int  # שכנוע          1–10
+    score_law: int  # שליטה בחוק     1–10
+    score_evidence: int  # ניהול ראיות     1–10
+    score_pressure: int  # תגובה לאתגרים   1–10
+    score_procedure: int  # סדרה ונוהל      1–10
+    overall: int  # ממוצע מעוגל     1–10
+    strong_points: str  # ✅ טענות חזקות
+    weaknesses: str  # ⚠️ חולשות
     procedural_errors: str  # ❌ טעויות סדריות
-    reality_check: str      # 🎭 מה היו עושים בפועל
-    recommendations: str    # 💡 המלצות
-    case_type: str          # "פלילי" or "אזרחי"
-    timestamp: str          # ISO 8601
+    reality_check: str  # 🎭 מה היו עושים בפועל
+    recommendations: str  # 💡 המלצות
+    case_type: str  # "פלילי" or "אזרחי"
+    timestamp: str  # ISO 8601
 
     @field_validator(
-        "score_persuasion", "score_law", "score_evidence",
-        "score_pressure", "score_procedure", "overall"
+        "score_persuasion",
+        "score_law",
+        "score_evidence",
+        "score_pressure",
+        "score_procedure",
+        "overall",
     )
     @classmethod
     def score_in_range(cls, v: int) -> int:
         if not 1 <= v <= 10:
             raise ValueError(f"Score must be between 1 and 10, got {v}")
         return v
+
+    @field_validator(
+        "strong_points",
+        "weaknesses",
+        "procedural_errors",
+        "reality_check",
+        "recommendations",
+    )
+    @classmethod
+    def strip_html_from_text(cls, v: str) -> str:
+        """LLMs occasionally wrap text in HTML tags — strip them."""
+        return _strip_html(v)
 
 
 COACH_SYSTEM_PROMPT = """אתה מאמן משפטי מנוסה המנתח ביצועי עורך דין ישראלי בסימולציה של דיון בבית משפט.
@@ -75,13 +97,56 @@ def _transcript_to_text(transcript: list[dict]) -> str:
 
 
 def _parse_json_response(raw: str) -> dict:
-    """Strip markdown code fences if the model wraps the JSON."""
+    """Strip markdown code fences and parse JSON; fall back to regex extraction on truncation."""
     cleaned = raw.strip()
     if cleaned.startswith("```"):
         lines = cleaned.split("\n")
-        # Remove first line (```json or ```) and last line (```)
-        cleaned = "\n".join(lines[1:-1]) if lines[-1].strip() == "```" else "\n".join(lines[1:])
-    return json.loads(cleaned)
+        cleaned = (
+            "\n".join(lines[1:-1])
+            if lines[-1].strip() == "```"
+            else "\n".join(lines[1:])
+        )
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        return _extract_partial_json(cleaned)
+
+
+def _extract_partial_json(text: str) -> dict:
+    """
+    Recover what we can from a truncated JSON response using regex.
+    Integer fields default to 5 and text fields to a Hebrew fallback string.
+    """
+    result: dict = {}
+    int_fields = (
+        "score_persuasion",
+        "score_law",
+        "score_evidence",
+        "score_pressure",
+        "score_procedure",
+        "overall",
+    )
+    str_fields = (
+        "strong_points",
+        "weaknesses",
+        "procedural_errors",
+        "reality_check",
+        "recommendations",
+    )
+    for field in int_fields:
+        m = re.search(rf'"{field}"\s*:\s*(\d+)', text)
+        result[field] = int(m.group(1)) if m else 5
+
+    for field in str_fields:
+        # First try a complete quoted value
+        m = re.search(rf'"{field}"\s*:\s*"((?:[^"\\]|\\.)*)"', text)
+        if m:
+            result[field] = m.group(1)
+        else:
+            # Response was truncated mid-string — take what was generated
+            m = re.search(rf'"{field}"\s*:\s*"(.*)', text, re.DOTALL)
+            result[field] = m.group(1).strip() if m else "(לא ניתן לנתח — הדוח נקטע)"
+    return result
 
 
 def analyze_session(transcript: list[dict], case_type: str) -> DebriefReport:
@@ -91,10 +156,14 @@ def analyze_session(transcript: list[dict], case_type: str) -> DebriefReport:
     transcript: list of {"role": "lawyer"|"judge"|"attorney", "content": str}
     case_type:  "פלילי" or "אזרחי"
     """
-    transcript_text = _transcript_to_text(transcript)
+    # Limit transcript length — very long sessions overflow the coach context window
+    # and cause the JSON response to be truncated.
+    trimmed = transcript[-40:] if len(transcript) > 40 else transcript
+    transcript_text = _transcript_to_text(trimmed)
     messages = [{"role": "user", "content": f"תמליל הדיון:\n\n{transcript_text}"}]
 
-    raw = call_openrouter(messages, COACH_SYSTEM_PROMPT)
+    # Use a generous token budget so the full JSON response is never cut off.
+    raw = call_openrouter(messages, COACH_SYSTEM_PROMPT, max_tokens=4096)
     data = _parse_json_response(raw)
     data["case_type"] = case_type
     data["timestamp"] = datetime.now(timezone.utc).isoformat()

@@ -16,6 +16,8 @@ def get_judge_system_prompt(
     document_analysis: str = "",
     law_context: str = "",
     user_side: str = "defense",
+    plaintiff_text: str = "",
+    defense_text: str = "",
 ) -> str:
     """
     Generate judge agent system prompt with injected persona and context.
@@ -44,6 +46,22 @@ def get_judge_system_prompt(
 כאשר אתה פונה לצד {opposing_side_he} — עורך הדין שכנגד יגיב באופן אוטומטי.
 אל תבקש מהמתאמן להגיב על טענות של {opposing_side_he} — זה לא תפקידו בסימולציה זו.
 כוון שאלות, ביקורות, ודרישות אך ורק לצד {user_side_he} כאשר אתה רוצה תגובה מהמתאמן.
+"""
+
+    # Raw document grounding block — injected before analysis so facts come first
+    raw_docs_block = ""
+    if plaintiff_text or defense_text:
+        parts = []
+        if plaintiff_text:
+            parts.append(f"כתב תביעה / כתב אישום (מקור):\n{plaintiff_text}")
+        if defense_text:
+            parts.append(f"כתב הגנה (מקור):\n{defense_text}")
+        raw_docs_block = f"""
+⚠️ מסמכי התיק המקוריים — עובדות מחייבות:
+{'\n\n---\n\n'.join(parts)}
+
+❗ כלל ברזל: כל עובדה שתזכיר — שם, תאריך, סכום, עד, מקום, אירוע — חייבת להופיע
+במפורש באחד מהמסמכים לעיל. אסור לך להמציא פרטים שאינם כתובים שם.
 """
 
     document_block = ""
@@ -78,7 +96,7 @@ def get_judge_system_prompt(
 
 פרטי התיק:
 {case_facts_block}
-{role_block}{document_block}{law_block}
+{role_block}{raw_docs_block}{document_block}{law_block}
 כללים מחייבים:
 - אתה מדבר אך ורק בעברית
 - אתה מצטט אך ורק חוקים וחוקות ישראליים אמיתיים
@@ -99,6 +117,8 @@ def get_attorney_system_prompt(
     case_facts: Dict[str, Any],
     current_phase: str,
     user_side: str = "defense",
+    plaintiff_text: str = "",
+    defense_text: str = "",
 ) -> str:
     """
     Generate opposing attorney agent system prompt.
@@ -122,6 +142,22 @@ def get_attorney_system_prompt(
     # Attorney always represents the side OPPOSITE to the user
     my_side_he = "התביעה" if user_side == "defense" else "ההגנה"
 
+    # Raw document grounding block
+    raw_docs_block = ""
+    if plaintiff_text or defense_text:
+        parts = []
+        if plaintiff_text:
+            parts.append(f"כתב תביעה / כתב אישום (מקור):\n{plaintiff_text}")
+        if defense_text:
+            parts.append(f"כתב הגנה (מקור):\n{defense_text}")
+        raw_docs_block = f"""
+⚠️ מסמכי התיק המקוריים — עובדות מחייבות:
+{'\n\n---\n\n'.join(parts)}
+
+❗ כלל ברזל: כל עובדה שתזכיר — שם, תאריך, סכום, עד, מקום, אירוע — חייבת להופיע
+במפורש באחד מהמסמכים לעיל. אסור לך להמציא פרטים שאינם כתובים שם.
+"""
+
     prompt = f"""אתה עורך דין מנוסה המייצג את צד {my_side_he} בדיון.
 
 {persona_block}
@@ -132,7 +168,7 @@ def get_attorney_system_prompt(
 
 פרטי התיק:
 {case_facts_block}
-
+{raw_docs_block}
 כללים מחייבים:
 - אתה מדבר אך ורק בעברית
 - אתה מגיש התנגדויות על בסיס חוק ישראלי בלבד
@@ -331,12 +367,12 @@ def _build_attorney_phase_block(current_phase: str) -> str:
         "cross": """שלב זה הוא חקירה נגדית - זה הזמן שלך!
 שאל שאלות קשות המוצבות כך שיפילו את עדויות עורך הדין.
 אל תאפשר לו להימלט מתשובה חזקה.""",
-        "examination": """שלב זה הוא חקירת עדים של הצד האחר.
-הקשיבו, רשום נקודות, וכשגיע תורך בחקירה נגדית - היה חריף.""",
-        "closing": """שלב זה הוא סיכומים: זה הזמן שלך להציע את טיעונך הסופי.
-קצר, חזק, ומוענק. אל תחזור על מה שכבר אמרת.""",
-        "ruling": """שלב זה הוא הכרעה של השופט. אתה צופה כשהוא מכריע.
-אם יש לך התנגדות לתוך ההכרעה, זה יהיה לאחר מכן.""",
+        "examination": """שלב זה הוא חקירת עדים: הגש התנגדויות כשיש שאלות פסולות (שמיעה, מנחה, לא רלוונטי).
+הגיב ישירות — אמור "התנגדות!" ועם נימוק קצר.""",
+        "closing": """שלב זה הוא סיכומים: הצג את טיעונך הסופי בשמה של עמדתך.
+קצר, חזק, ומדוקדק. הדגש את נקודות החולשה של הצד האחר.""",
+        "ruling": """השופט עומד לתת את הכרעתו. הגיב בקצרה אם יש לך הערה משפטית אחרונה.
+אחרת אמור: 'אין לי הערות נוספות, כב\u05f3 השופט.'""",
     }
 
     return phase_instructions.get(current_phase, "")

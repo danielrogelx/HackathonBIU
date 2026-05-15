@@ -167,7 +167,7 @@ class Orchestrator:
             "case_facts": self.state.case_facts,
             "judge_name": self.state.judge_name or "שופט בכיר",
             "judge_persona": self.state.judge_persona,
-            "attorney_name": self.state.attorney_name or "עורך דין בכיר",
+            "attorney_name": self.state.attorney_name or "עורך דין שכנגד",
             "attorney_persona": self.state.attorney_persona,
             "current_phase": self.state.current_phase,
             "current_phase_he": self.get_phase_name_he(),
@@ -183,6 +183,7 @@ class Orchestrator:
 # ── Session-level convenience functions (used by Streamlit UI) ────────────────
 # These wrap the Orchestrator class using st.session_state for persistence
 # across Streamlit reruns. The Orchestrator class itself is not modified.
+
 
 def start_session(case: dict) -> dict:
     """
@@ -203,16 +204,18 @@ def start_session(case: dict) -> dict:
     case_type = CaseType.CRIMINAL if case.get("type") == "criminal" else CaseType.CIVIL
 
     orch = Orchestrator(session_id=str(uuid.uuid4()), case_type=case_type)
-    orch.set_case_facts({
-        "parties": case.get("parties", ""),
-        "charges": case.get("charges", ""),
-        "evidence": case.get("evidence", ""),
-        "side": case.get("side", "defense"),
-        "documents": case.get("documents", ""),
-    })
+    orch.set_case_facts(
+        {
+            "parties": case.get("parties", ""),
+            "charges": case.get("charges", ""),
+            "evidence": case.get("evidence", ""),
+            "side": case.get("side", "defense"),
+            "documents": case.get("documents", ""),
+        }
+    )
 
     judge_name = case.get("judge_name") or "שופט בכיר"
-    attorney_name = case.get("attorney_name") or "עורך דין בכיר"
+    attorney_name = case.get("attorney_name") or "עורך דין שכנגד"
     orch.set_judge(judge_name, DEFAULT_JUDGE_STYLE)
     orch.set_attorney(attorney_name, DEFAULT_ATTORNEY_STYLE)
 
@@ -220,6 +223,7 @@ def start_session(case: dict) -> dict:
     law_context = ""
     try:
         from core.rag.law_rag import query_relevant_laws, is_index_built
+
         if is_index_built():
             rag_query = (
                 f"{case.get('charges', '')} {case.get('evidence', '')} "
@@ -237,14 +241,20 @@ def start_session(case: dict) -> dict:
     if plaintiff_text and defense_text:
         try:
             from core.document_analyzer import analyze_case_documents
+
             document_analysis = analyze_case_documents(plaintiff_text, defense_text)
         except Exception:
             pass
 
-    # Store both for use in judge._build_system_prompt()
+    # Store all context for use in agent._build_system_prompt()
     st.session_state["_law_context"] = law_context
     st.session_state["_document_analysis"] = document_analysis
     st.session_state["_user_side"] = case.get("side", "defense")
+    st.session_state["_short_mode"] = bool(case.get("short_mode", False))
+    # Raw document text (capped at 6 000 chars each ≈ 1 500 tokens) — used for
+    # strict factual grounding so agents cannot hallucinate case details.
+    st.session_state["_plaintiff_text"] = plaintiff_text[:6000].strip()
+    st.session_state["_defense_text"] = defense_text[:6000].strip()
 
     # Advance from "setup" → "opening"
     orch.advance_phase()
@@ -295,7 +305,20 @@ def send_message(
         raise RuntimeError("Session not initialised — call start_session first.")
 
     judge_text = judge.speak(lawyer_message=user_input)
-    attorney_text = attorney.speak()
+
+    # Attorney only speaks in phases where opposing counsel actively participates.
+    # In ruling/judgment/debrief the judge is speaking alone — calling attorney
+    # there causes it to say "I'm waiting for the judge" (its phase block is passive).
+    _passive_phases = {"ruling", "judgment", "debrief", "setup"}
+    current_phase = orch.get_state().current_phase
+    attorney_text = attorney.speak() if current_phase not in _passive_phases else ""
+
+    # After the attorney speaks the judge must react (rule on objection, acknowledge,
+    # or direct the proceedings). Without this the user faces the attorney's last word
+    # and has no judicial guidance on how to continue.
+    judge_followup_text = ""
+    if attorney_text:
+        judge_followup_text = judge.speak()
 
     # Auto-advance phase every 4 lawyer messages, but never into "debrief"
     count = st.session_state.get("_msg_count", 0) + 1
@@ -317,11 +340,28 @@ def send_message(
             "content": judge_text,
             "speaker": judge_name,
         },
-        "attorney_response": {
-            "role": "attorney",
-            "content": attorney_text,
-            "speaker": attorney_name,
-        },
+        # attorney_text can be empty string when the API returns null content;
+        # set to None so the UI can skip rendering it entirely.
+        "attorney_response": (
+            {
+                "role": "attorney",
+                "content": attorney_text,
+                "speaker": attorney_name,
+            }
+            if attorney_text
+            else None
+        ),
+        # Judge reacts to the attorney (rules on objection, directs next step).
+        # Only present when the attorney actually spoke.
+        "judge_followup": (
+            {
+                "role": "judge",
+                "content": judge_followup_text,
+                "speaker": judge_name,
+            }
+            if judge_followup_text
+            else None
+        ),
         "new_phase": orch.get_state().current_phase,
     }
 
@@ -339,14 +379,17 @@ def end_session(messages: list):
     case_type = "פלילי"
     if orch:
         from config import CaseType
+
         case_type = "פלילי" if orch.case_type == CaseType.CRIMINAL else "אזרחי"
         orch.mark_complete()
 
     # Map "user" → "lawyer" so the coach prompt recognises the role
     role_map = {"user": "lawyer", "judge": "judge", "attorney": "attorney"}
     transcript = [
-        {"role": role_map.get(m.get("role", "user"), "lawyer"),
-         "content": m.get("content", "")}
+        {
+            "role": role_map.get(m.get("role", "user"), "lawyer"),
+            "content": m.get("content", ""),
+        }
         for m in messages
     ]
 
