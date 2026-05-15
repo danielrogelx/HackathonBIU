@@ -1,0 +1,258 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="960" y1="0" x2="960" y2="1080">
+      <stop stop-color="#FAFBFF"/>
+      <stop offset="1" stop-color="#F0F4FB"/>
+    </linearGradient>
+    
+    <linearGradient id="blue" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5B7CFF"/>
+      <stop offset="1" stop-color="#4A63E8"/>
+    </linearGradient>
+    
+    <linearGradient id="navy" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2D3748"/>
+      <stop offset="1" stop-color="#3E4C5E"/>
+    </linearGradient>
+    
+    <linearGradient id="gold" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#FBBF24"/>
+    </linearGradient>
+
+    <linearGradient id="conversationGrad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-opacity="0.08"/>
+    </filter>
+
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="35"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bgGrad)"/>
+  
+  <!-- Decorative blobs -->
+  <circle cx="1680" cy="180" r="160" fill="#E0E7FF" opacity="0.35" filter="url(#glow)"/>
+  <circle cx="240" cy="900" r="140" fill="#DBEAFE" opacity="0.3" filter="url(#glow)"/>
+
+  <!-- ARROWS (behind everything) -->
+  <!-- inputs to analysis -->
+  <path d="M370 360h90" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M453 354l7 6-7 6" stroke="#D1D5DB" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- analysis to context -->
+  <path d="M890 360h90" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M973 354l7 6-7 6" stroke="#D1D5DB" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- context down -->
+  <path d="M1310 485v70" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M1304 548l6 7 6-7" stroke="#D1D5DB" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- analysis down -->
+  <path d="M720 485v70" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M714 548l6 7 6-7" stroke="#D1D5DB" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- conversation to agents -->
+  <path d="M280 700v70" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M274 763l6 7 6-7" stroke="#D1D5DB" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M600 700v70" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M594 763l6 7 6-7" stroke="#D1D5DB" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M920 700v70" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M914 763l6 7 6-7" stroke="#D1D5DB" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Header -->
+  <rect x="90" y="70" width="160" height="32" rx="16" fill="#EEF2FF"/>
+  <text x="170" y="91" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#5B7CFF" letter-spacing="1.2">ARCHITECTURE</text>
+
+  <text x="90" y="155" font-family="system-ui, sans-serif" font-size="48" font-weight="900" fill="#0F172A" letter-spacing="-0.5">
+    AI Legal Simulation System
+  </text>
+
+  <text x="90" y="195" font-family="system-ui, sans-serif" font-size="18" font-weight="400" fill="#64748B">
+    A multi-agent framework that analyzes case documents, retrieves Israeli law, and simulates courtroom dialogue
+  </text>
+
+  <!-- Row 1: Inputs, Analysis, Context -->
+  
+  <!-- INPUTS CARD -->
+  <g filter="url(#shadow)">
+    <rect x="90" y="260" width="280" height="240" rx="20" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  </g>
+  
+  <text x="110" y="288" font-family="system-ui, sans-serif" font-size="11" font-weight="800" fill="#94A3B8" letter-spacing="1.3">01 — INPUTS</text>
+  <text x="110" y="318" font-family="system-ui, sans-serif" font-size="24" font-weight="800" fill="#0F172A">Case Documents</text>
+
+  <!-- doc 1 -->
+  <rect x="110" y="345" width="240" height="62" rx="14" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <rect x="124" y="357" width="38" height="38" rx="10" fill="#EEF2FF"/>
+  <path d="M135 368h7l5 5v10h-12v-15z" stroke="#5B7CFF" stroke-width="1.8" fill="none"/>
+  <path d="M142 368v5h5" stroke="#5B7CFF" stroke-width="1.8" fill="none"/>
+  <text x="173" y="373" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#0F172A">כתב תביעה</text>
+  <text x="173" y="390" font-family="system-ui, sans-serif" font-size="12" font-weight="500" fill="#64748B">Statement of Claim</text>
+
+  <!-- doc 2 -->
+  <rect x="110" y="420" width="240" height="62" rx="14" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <rect x="124" y="432" width="38" height="38" rx="10" fill="#EEF2FF"/>
+  <path d="M135 443h7l5 5v10h-12v-15z" stroke="#5B7CFF" stroke-width="1.8" fill="none"/>
+  <path d="M142 443v5h5" stroke="#5B7CFF" stroke-width="1.8" fill="none"/>
+  <text x="173" y="448" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#0F172A">כתב הגנה</text>
+  <text x="173" y="465" font-family="system-ui, sans-serif" font-size="12" font-weight="500" fill="#64748B">Statement of Defense</text>
+
+  <!-- ANALYSIS CARD -->
+  <g filter="url(#shadow)">
+    <rect x="460" y="260" width="430" height="240" rx="20" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  </g>
+
+  <text x="480" y="288" font-family="system-ui, sans-serif" font-size="11" font-weight="800" fill="#94A3B8" letter-spacing="1.3">02 — PROCESSING</text>
+  
+  <rect x="480" y="305" width="48" height="48" rx="14" fill="url(#blue)"/>
+  <circle cx="504" cy="323" r="6" stroke="white" stroke-width="2" fill="none"/>
+  <path d="M508.5 327.5l4.5 4.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <path d="M504 319v3l2 2" stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+  <text x="542" y="332" font-family="system-ui, sans-serif" font-size="24" font-weight="800" fill="#0F172A">Analysis + RAG</text>
+  
+  <text x="480" y="370" font-family="system-ui, sans-serif" font-size="14" font-weight="400" fill="#475569">
+    <tspan x="480" dy="0">Extract facts, arguments, and claims from both</tspan>
+    <tspan x="480" dy="20">documents. Retrieve the most relevant Israeli law</tspan>
+    <tspan x="480" dy="20">using RAG and enrich the case context.</tspan>
+  </text>
+
+  <rect x="480" y="450" width="110" height="28" rx="14" fill="#F1F5F9" stroke="#E2E8F0"/>
+  <text x="535" y="468" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#475569">Fact extraction</text>
+
+  <rect x="600" y="450" width="110" height="28" rx="14" fill="#F1F5F9" stroke="#E2E8F0"/>
+  <text x="655" y="468" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#475569">Law retrieval</text>
+
+  <rect x="720" y="450" width="130" height="28" rx="14" fill="#F1F5F9" stroke="#E2E8F0"/>
+  <text x="785" y="468" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#475569">Context enrichment</text>
+
+  <!-- CONTEXT CARD -->
+  <g filter="url(#shadow)">
+    <rect x="980" y="260" width="430" height="240" rx="20" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  </g>
+
+  <text x="1000" y="288" font-family="system-ui, sans-serif" font-size="11" font-weight="800" fill="#94A3B8" letter-spacing="1.3">03 — CONTEXT</text>
+
+  <rect x="1000" y="305" width="48" height="48" rx="14" fill="url(#gold)"/>
+  <path d="M1016 343h16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <path d="M1024 325v18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <path d="M1011 320l13-8 13 8v15l-13 8-13-8z" stroke="white" stroke-width="2" fill="none" stroke-linejoin="round"/>
+
+  <text x="1062" y="332" font-family="system-ui, sans-serif" font-size="24" font-weight="800" fill="#0F172A">Shared Context</text>
+
+  <text x="1000" y="370" font-family="system-ui, sans-serif" font-size="14" font-weight="400" fill="#475569">
+    <tspan x="1000" dy="0">All three agents receive the same legal and factual</tspan>
+    <tspan x="1000" dy="20">grounding: case facts, claims, defense arguments,</tspan>
+    <tspan x="1000" dy="20">and the applicable law of Israel for this case.</tspan>
+  </text>
+
+  <rect x="1000" y="450" width="90" height="28" rx="14" fill="#FEF3C7" stroke="#FDE68A"/>
+  <text x="1045" y="468" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#92400E">Case facts</text>
+
+  <rect x="1100" y="450" width="100" height="28" rx="14" fill="#FEF3C7" stroke="#FDE68A"/>
+  <text x="1150" y="468" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#92400E">Relevant law</text>
+
+  <rect x="1210" y="450" width="120" height="28" rx="14" fill="#FEF3C7" stroke="#FDE68A"/>
+  <text x="1270" y="468" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#92400E">Legal grounding</text>
+
+  <!-- CONVERSATION BAND (now wider and lighter purple/indigo) -->
+  <g filter="url(#shadow)">
+    <rect x="90" y="575" width="1520" height="110" rx="20" fill="url(#conversationGrad)"/>
+  </g>
+
+  <rect x="115" y="600" width="44" height="44" rx="12" fill="rgba(255,255,255,0.15)"/>
+  <path d="M126 613h18c2.5 0 4.5 2 4.5 4.5v7c0 2.5-2 4.5-4.5 4.5h-6l-3.5 3.5v-3.5h-8.5c-2.5 0-4.5-2-4.5-4.5v-7c0-2.5 2-4.5 4.5-4.5z" stroke="white" stroke-width="2.2" fill="none"/>
+
+  <text x="175" y="618" font-family="system-ui, sans-serif" font-size="26" font-weight="900" fill="white">Conversation Simulation</text>
+  <text x="175" y="645" font-family="system-ui, sans-serif" font-size="15" font-weight="400" fill="rgba(255,255,255,0.9)">
+    The three agents engage in structured dialogue to simulate the legal process and courtroom interaction
+  </text>
+
+  <!-- AGENTS ROW -->
+  
+  <!-- Judge -->
+  <g filter="url(#shadow)">
+    <rect x="90" y="790" width="320" height="180" rx="20" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  </g>
+
+  <rect x="110" y="810" width="44" height="44" rx="12" fill="url(#gold)"/>
+  <path d="M120 830h16" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M124 824l10 12" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+
+  <text x="168" y="833" font-family="system-ui, sans-serif" font-size="22" font-weight="800" fill="#0F172A">Judge Agent</text>
+  <text x="110" y="875" font-family="system-ui, sans-serif" font-size="13" font-weight="400" fill="#64748B">
+    <tspan x="110" dy="0">• Reasons over both sides</tspan>
+    <tspan x="110" dy="22">• Frames legal discussion</tspan>
+    <tspan x="110" dy="22">• Supports decision logic</tspan>
+  </text>
+
+  <!-- Opposing Attorney -->
+  <g filter="url(#shadow)">
+    <rect x="440" y="790" width="320" height="180" rx="20" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  </g>
+
+  <rect x="460" y="810" width="44" height="44" rx="12" fill="url(#blue)"/>
+  <circle cx="482" cy="826" r="6" stroke="white" stroke-width="2" fill="none"/>
+  <path d="M471 843c1.5-6 5.5-10 11-10s9.5 4 11 10" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+  <text x="518" y="833" font-family="system-ui, sans-serif" font-size="22" font-weight="800" fill="#0F172A">Opposing Attorney</text>
+  <text x="460" y="875" font-family="system-ui, sans-serif" font-size="13" font-weight="400" fill="#64748B">
+    <tspan x="460" dy="0">• Presents counterarguments</tspan>
+    <tspan x="460" dy="22">• Challenges the other side</tspan>
+    <tspan x="460" dy="22">• Adversarial reasoning</tspan>
+  </text>
+
+  <!-- Evaluator -->
+  <g filter="url(#shadow)">
+    <rect x="790" y="790" width="280" height="180" rx="20" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  </g>
+
+  <rect x="810" y="810" width="44" height="44" rx="12" fill="url(#blue)"/>
+  <path d="M820 826h18" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M820 833h14" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M820 840h10" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+
+  <text x="868" y="833" font-family="system-ui, sans-serif" font-size="22" font-weight="800" fill="#0F172A">Evaluator</text>
+  <text x="810" y="875" font-family="system-ui, sans-serif" font-size="13" font-weight="400" fill="#64748B">
+    <tspan x="810" dy="0">• Assesses argument quality</tspan>
+    <tspan x="810" dy="22">• Scores performance</tspan>
+    <tspan x="810" dy="22">• Provides feedback</tspan>
+  </text>
+
+  <!-- OUTPUTS -->
+  <g filter="url(#shadow)">
+    <rect x="1110" y="790" width="490" height="180" rx="20" fill="#FFFBEB" stroke="#FDE68A" stroke-width="1"/>
+  </g>
+
+  <text x="1130" y="818" font-family="system-ui, sans-serif" font-size="11" font-weight="800" fill="#B45309" letter-spacing="1.3">OUTPUTS</text>
+
+  <rect x="1130" y="835" width="44" height="44" rx="12" fill="url(#gold)"/>
+  <path d="M1142 855h16" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M1150 847v16" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+
+  <text x="1188" y="858" font-family="system-ui, sans-serif" font-size="22" font-weight="800" fill="#78350F">System Outputs</text>
+
+  <text x="1130" y="900" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#92400E">
+    <tspan x="1130" dy="0">• Legal argument rehearsal and practice</tspan>
+    <tspan x="1130" dy="24">• Performance evaluation and scoring</tspan>
+    <tspan x="1130" dy="24">• Decision support and actionable feedback</tspan>
+  </text>
+
+  <!-- Footer -->
+  <text x="90" y="1040" font-family="system-ui, sans-serif" font-size="13" font-weight="400" fill="#94A3B8">
+    RAG ensures all agents are grounded in the actual law of Israel for the specific case being simulated
+  </text>
+
+  <text x="1830" y="1040" text-anchor="end" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#CBD5E1">
+    3E1S/HackathonBIU
+  </text>
+</svg>
